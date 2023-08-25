@@ -1,0 +1,39 @@
+name: npm
+
+on:
+  workflow_call:
+    secrets:
+      gh-token:
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🌀 prepare repository
+        uses: actions/checkout@v3
+
+      - name: 🔧 prepare node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: 'https://npm.pkg.github.com/'
+
+      - name: 💾 restore dependency cache
+        uses: actions/cache/restore@v3
+        id: yarn-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+
+      - name: 💾 restore project build cache
+        uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: dist
+          key: ${{ runner.os }}-build-${{ github.ref_name }}
+
+      - name: 🚀 deploy to npm.pkg.github.com
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.gh-token }}
