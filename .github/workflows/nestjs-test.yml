@@ -1,0 +1,34 @@
+name: test
+
+on:
+  workflow_call:
+    inputs:
+      lint:
+        type: boolean
+        required: false
+        default: true
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🌀 prepare repository
+        uses: actions/checkout@v3
+
+      - name: 💾 restore dependency cache
+        uses: actions/cache/restore@v3
+        id: yarn-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+
+      - name: 💾 restore project build cache
+        uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: dist
+          key: ${{ runner.os }}-build-${{ github.ref_name }}
+
+      - name: 🔎 lint project files
+        run: yarn lint
+        if: '${{ inputs.lint }}'
