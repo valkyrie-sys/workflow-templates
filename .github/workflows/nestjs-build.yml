@@ -1,0 +1,68 @@
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      production:
+        required: true
+        type: boolean
+      cache-build:
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      gh-token:
+        required: true
+
+jobs:
+  transpile:
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🌀 prepare repository
+        uses: actions/checkout@v3
+
+      - name: 🔧 prepare node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: 'https://npm.pkg.github.com/'
+
+      - name: 💾 prepare dependency cache
+        uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+
+      - name: 📦 install dependencies
+        run: yarn
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.gh-token }}
+
+      - name: 🛠️ build project
+        run: yarn build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.gh-token }}
+
+      - name: 🔥 purge existing node_modules directory
+        run: rm -rf node_modules
+        if: '${{ inputs.production }}'
+
+      - name: 📦 install only production related dependencies
+        run: yarn install --frozen-lockfile --prod
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.gh-token }}
+        if: '${{ inputs.production }}'
+
+      - name: 💾 save the project build
+        uses: actions/cache/save@v3
+        id: cache
+        with:
+          path: dist
+          key: ${{ runner.os }}-build-${{ github.ref_name }}
+        if: '${{ inputs.cache-build }}'
