@@ -9,6 +9,10 @@ on:
       username:
         required: true
         type: string
+      cache-identifier:
+        required: false
+        type: string
+        default: app
     secrets:
       gh-token:
         required: true
@@ -25,7 +29,7 @@ jobs:
         id: yarn-cache
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node-${{ inputs.cache-identifier }}-${{ hashFiles('**/yarn.lock') }}
 
       - name: 💾 restore project build cache
         uses: actions/cache/restore@v3

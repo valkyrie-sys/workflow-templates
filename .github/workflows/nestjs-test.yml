@@ -7,6 +7,10 @@ on:
         type: boolean
         required: false
         default: true
+      cache-identifier:
+        required: false
+        type: string
+        default: app
 
 jobs:
   execute:
@@ -20,7 +24,7 @@ jobs:
         id: yarn-cache
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node-${{ inputs.cache-identifier }}-${{ hashFiles('**/yarn.lock') }}
 
       - name: 💾 restore project build cache
         uses: actions/cache/restore@v3

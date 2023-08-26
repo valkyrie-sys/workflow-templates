@@ -10,6 +10,10 @@ on:
         required: false
         type: boolean
         default: true
+      cache-identifier:
+        required: false
+        type: string
+        default: app
     secrets:
       gh-token:
         required: true
@@ -35,9 +39,9 @@ jobs:
         id: yarn-cache
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node-${{ inputs.cache-identifier }}-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+            ${{ runner.os }}-node-${{ inputs.cache-identifier }}-${{ hashFiles('**/yarn.lock') }}
 
       - name: 📦 install dependencies
         run: yarn
